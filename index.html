@@ -409,7 +409,7 @@
 
 <div class="intro">
   <h1>Armá tu pedido a tu gusto</h1>
-  <p>Elegí la cantidad de docenas de cada producto y calculá tu presupuesto al instante.</p>
+  <p>Elegí la cantidad de cada producto (de a media docena) y calculá tu presupuesto al instante.</p>
 </div>
 
 <nav class="tabs">
@@ -432,7 +432,7 @@
     <div id="dulces-list"></div>
   </section>
 
-  <p class="note">Los precios de salados y dulces son por docena. Para la opción de salsas para acompañar un asado, consultanos por WhatsApp.</p>
+  <p class="note">Salados y dulces se piden por docena o media docena. Para la opción de salsas para acompañar un asado, consultanos por WhatsApp.</p>
 </div>
 
 <footer class="summary">
@@ -451,7 +451,7 @@
 <script>
   const productos = {
     salados: [
-      { n: "Medialuna jamón y queso", p: 20000 },
+      { n: "Medialuna jamón y queso", p: 22000 },
       { n: "Fosforito jamón y queso", p: 12000 },
       { n: "Sandwichito jamón y queso", p: 16000 },
       { n: "Sandwichito salame y queso", p: 16000 },
@@ -462,8 +462,8 @@
       { n: "Pizzeta mozzarella y jamón", p: 13000 },
       { n: "Pizzeta mozzarella, tomate y orégano", p: 13000 },
       { n: "Pizzeta fugazzeta", p: 15000 },
-      { n: "Mini burguer carne o pollo c/cheddar", p: 22000 },
-      { n: "Mini burguer carne o pollo con jamón y queso", p: 22000 },
+      { n: "Mini burguer carne o pollo c/cheddar", p: 24000 },
+      { n: "Mini burguer carne o pollo con jamón y queso", p: 24000 },
       { n: "Empanaditas de carne o pollo", p: 16000 },
       { n: "Empanaditas jamón y mozzarella", p: 15000 },
       { n: "Canastitas capresse / cebolla / roquefort / choclo", p: 15000 },
@@ -471,8 +471,8 @@
       { n: "Pinchos picada", p: 15000 },
       { n: "Pinchos berenjena asada, tomate y queso", p: 14000 },
       { n: "Sandwichito pollo, rúcula, tomate y queso", p: 22000 },
-      { n: "Sandwichito de milanesa ternera o pollo (surtidos)", p: 22000 },
-      { n: "Sandwichito milanesa de berenjena", p: 18000 },
+      { n: "Sandwichito de milanesa ternera o pollo (surtidos)", p: 24000 },
+      { n: "Sandwichito milanesa de berenjena", p: 20000 },
       { n: "Albondiguita de carne o pollo", p: 16000 },
       { n: "Buñuelitos de espinaca", p: 15000 },
       { n: "Mini ensaladitas (Caesar, mixta, a elección)", p: 20000 },
@@ -632,22 +632,38 @@
       row.innerHTML = `
         <div class="item-info">
           <div class="item-name">${prod.n}</div>
-          <div class="item-price">${fmt(prod.p)} la docena</div>
+          <div class="item-price">½ docena ${fmt(prod.p / 2)} · docena ${fmt(prod.p)}</div>
         </div>
         <div class="stepper">
-          <button aria-label="Restar" onclick="changeQty('${id}', -1)">−</button>
+          <button aria-label="Restar" onclick="changeQty('${id}', -0.5)">−</button>
           <div class="qty" id="qty-${id}">0</div>
-          <button aria-label="Sumar" onclick="changeQty('${id}', 1)">+</button>
+          <button aria-label="Sumar" onclick="changeQty('${id}', 0.5)">+</button>
         </div>
       `;
       container.appendChild(row);
     });
   }
 
+  // Cantidad en docenas con medias: 0, ½, 1, 1½, 2...
+  function fmtQty(q){
+    const entero = Math.floor(q);
+    const media = q % 1 !== 0;
+    if (!media) return String(entero);
+    return entero === 0 ? '½' : entero + '½';
+  }
+
+  function fmtQtyTexto(q){
+    if (q === 0.5) return 'media docena';
+    if (q === 1) return '1 docena';
+    if (q === 1.5) return '1 docena y media';
+    if (q % 1 === 0.5) return Math.floor(q) + ' docenas y media';
+    return q + ' docenas';
+  }
+
   function changeQty(id, delta){
     const item = cart[id];
     item.qty = Math.max(0, item.qty + delta);
-    document.getElementById('qty-' + id).textContent = item.qty;
+    document.getElementById('qty-' + id).textContent = fmtQty(item.qty);
     document.getElementById('row-' + id).classList.toggle('active', item.qty > 0);
     updateTotal();
   }
@@ -679,8 +695,7 @@
       if (item.qty > 0){
         const subtotal = item.qty * item.p;
         total += subtotal;
-        const docenaLabel = item.qty === 1 ? 'docena' : 'docenas';
-        lines.push(`• ${item.qty} ${docenaLabel} de ${item.n} — ${fmt(subtotal)}`);
+        lines.push(`• ${fmtQtyTexto(item.qty)} de ${item.n} — ${fmt(subtotal)}`);
       }
     });
 
